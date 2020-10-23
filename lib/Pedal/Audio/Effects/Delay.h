@@ -24,7 +24,7 @@ private:
     });
     //PotentiometerView feedbacker2 = PotentiometerView(this, "FEEDBACKFEEDBACK222");
 public:
-    Delay() : EffectsUnit("DELAY-DELAY-DELAY")
+    Delay() : EffectsUnit("DELAY")
     {
         for (int i = 0; i < MAX_DELAY; i++)
         {

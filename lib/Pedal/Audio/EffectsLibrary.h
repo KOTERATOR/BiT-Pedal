@@ -30,6 +30,7 @@ public:
     EffectsLibrary()
     {
         add("DELAY", [](){ return new Delay(); });
+        add("OVERDRIVE", []() {return new Overdrive(); });
     }
 
     void add(String name, EffectConstructor ctr)
