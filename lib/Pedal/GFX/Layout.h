@@ -71,9 +71,8 @@ public:
     void selectItem(size_t index);
     void centerSelectedItem();
 
-    ~Layout()
+    virtual ~Layout()
     {
-        children.~vector();
     }
 };
 
@@ -100,6 +99,19 @@ void Layout::update()
     {
         Container *c = children[i];
         c->index = i;
+
+        if (isSelected)
+        {
+            if (i != selectedItemIndex && !c->isHovered)
+            {
+                c->isHovered = false;
+            }
+            else if (i == selectedItemIndex && c->isHovered)
+            {
+                c->isHovered = true;
+            }
+        }
+
         c->update();
 
         Size s = c->getSize();
@@ -168,6 +180,8 @@ void Layout::add(Container *container)
 
 void Layout::clear()
 {
+    selectedItem = nullptr;
+    selectedItemIndex = 0;
     children.clear();
 }
 
@@ -244,13 +258,30 @@ void Layout::onSelect()
     {
         if (!isSelected)
         {
-            children[0]->onHover();
-            //centerSelectedItem();
-            if (children.size() == 1)
+            if (children.size() > 0)
             {
-                selectedItem = children[0];
-                selectedItem->enterEvent(selectedItem);
-                selectedItem->onSelect();
+                bool isHoveredAny = false;
+                for (int i = 0; i < children.size(); i++)
+                {
+                    if (children[i]->isHovered)
+                    {
+                        isHoveredAny = true;
+                        break;
+                    }
+                }
+
+                if (!isHoveredAny)
+                {
+                    selectedItemIndex = 0;
+                    children[0]->onHover();
+                }
+                //centerSelectedItem();
+                if (children.size() == 1)
+                {
+                    selectedItem = children[0];
+                    selectedItem->enterEvent(selectedItem);
+                    selectedItem->onSelect();
+                }
             }
             isSelected = true;
 
@@ -258,9 +289,12 @@ void Layout::onSelect()
         }
         else
         {
-            selectedItem = children[selectedItemIndex];
-            selectedItem->enterEvent(selectedItem);
-            selectedItem->onSelect();
+            if (selectedItemIndex < children.size())
+            {
+                selectedItem = children[selectedItemIndex];
+                selectedItem->enterEvent(selectedItem);
+                selectedItem->onSelect();
+            }
         }
     }
 }
@@ -390,18 +424,24 @@ void Layout::selectItem(size_t index)
         //children[selectedItemIndex]->onUnselect();
         if (selectedItem != nullptr)
         {
-            selectedItem->onUnselect();
+            selectedItem->isHovered = false;
+            selectedItem->isSelected = false;
+        }
+        else if (selectedItemIndex < children.size())
+        {
+            children[selectedItemIndex]->isHovered = false;
         }
         selectedItemIndex = index;
         selectedItem = children[selectedItemIndex];
-        selectedItem->onHover();
+        selectedItem->isHovered = true;
+        selectedItem->isSelected = false;
         selectedItem->onSelect();
     }
 }
 
 void Layout::centerSelectedItem()
 {
-    if (selectedItemIndex >= 0 && selectedItemIndex < children.size())
+    if (selectedItemIndex < children.size())
     {
         Container *child = children[selectedItemIndex];
         Container *absoluteParent = getAbsoluteParent();

@@ -6,7 +6,7 @@
 #include <vector>
 
 //typedef EffectsUnit* (*EffectConstructor)();
-typedef std::function<EffectsUnit*(void)> EffectConstructor;
+typedef std::function<EffectsUnit *(void)> EffectConstructor;
 
 class EffectsLibraryNode
 {
@@ -24,13 +24,13 @@ public:
 class EffectsLibrary
 {
 protected:
-    
 public:
     std::vector<EffectsLibraryNode> library;
     EffectsLibrary()
     {
-        add("DELAY", [](){ return new Delay(); });
-        add("OVERDRIVE", []() {return new Overdrive(); });
+        add("DELAY", []() { return new Delay(); });
+        add("OVERDRIVE", []() { return new Overdrive(); });
+        add("PITCH SHIFTER", []() { return new PitchShifter(); });
     }
 
     void add(String name, EffectConstructor ctr)
@@ -38,11 +38,11 @@ public:
         library.push_back(EffectsLibraryNode(name, ctr));
     }
 
-    EffectsUnit * get(String name)
+    EffectsUnit *get(String name)
     {
-        for(int i = 0; i < library.size(); i++)
+        for (int i = 0; i < library.size(); i++)
         {
-            if(name == library[i].name)
+            if (name == library[i].name)
             {
                 return library[i].constructor();
             }

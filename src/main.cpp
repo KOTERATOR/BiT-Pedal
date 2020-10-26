@@ -15,12 +15,11 @@
 #include "Audio/Preset.h"
 
 bool canCopy = false;
+bool serialReady = false;
 int32_t buf1[512], buf2[512], readCopy[512];
 int32_t *proccessing = buf2, *reading = buf1;
 
 uint64_t procTime = 0;
-
-bool bypass = false;
 
 int displayTask(void *arg)
 {
@@ -29,9 +28,7 @@ int displayTask(void *arg)
     //lcd.fillRect(0, 0, 100, 100, COLOR_BLUE);
     pedal.init();
 
-    Delay * effect = new Delay();
     Preset *preset = new Preset("Hello World!");
-    preset->add(effect);
     pedal.preset = preset;
     pedal.screen.setActivity(new PresetActivity(preset));
 
@@ -42,9 +39,12 @@ int displayTask(void *arg)
         if (nowMillis - prevUpdateTime > 50)
         {
             prevUpdateTime = nowMillis;
-            pedal.screen.getCurrentActivity()->update();
+            pedal.screen.update();
             pedal.screen.draw();
+            //preset->update();
             //Serial.println(get_free_heap_size());
+            //Serial.println(procTime);
+            //Serial.println(preset->effects.size());
         }
         pedal.tick();
         //effect->setBypass(!fw1.isDown());
@@ -107,7 +107,6 @@ void loop()
 {
     //Serial.println("LOOP");
     //Serial.println(current_coreid());
-    auto prev = micros();
     i2s_receive_data_dma(I2S_DEVICE_0, (uint32_t *)reading, 512, DMAC_CHANNEL1);
 
     /*if (canCopy)
@@ -155,26 +154,34 @@ void loop()
             proccessing[i] = val;
         }
     }*/
+    auto prev = micros();
 
     for (int i = 0; i < 256; i++)
     {
-        r_buf[i] = proccessing[i*2+1];
-        l_buf[i] = proccessing[i*2];
+        r_buf[i] = proccessing[i * 2 + 1];
+        l_buf[i] = proccessing[i * 2];
     }
 
     pedal.proceedInputL(l_buf, 256);
 
     for (int i = 0; i < 256; i++)
     {
-        proccessing[i*2+1] = l_buf[i];
-        proccessing[i*2] = r_buf[i];
+        proccessing[i * 2 + 1] = l_buf[i];
+        proccessing[i * 2] = r_buf[i];
     }
 
-    i2s_send_data_dma(I2S_DEVICE_1, (uint32_t *)proccessing, 512, DMAC_CHANNEL0);
+    procTime = micros() - prev;
+    if (procTime < 5000)
+    {
+        dmac_wait_idle(DMAC_CHANNEL0);
+        i2s_send_data_dma(I2S_DEVICE_1, (uint32_t *)proccessing, 512, DMAC_CHANNEL0);
+    }
 
     int32_t *temp = proccessing;
     proccessing = reading;
     reading = temp;
+
+    pedal.screen.processingTime = procTime;
+
     dmac_wait_idle(DMAC_CHANNEL1);
-    procTime = micros() - prev;
 }

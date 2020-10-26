@@ -21,6 +21,8 @@ public:
     virtual bool onExit();
 
     void onHover() {}
+
+    virtual ~Activity() { }
 };
 
 bool Activity::onExit()

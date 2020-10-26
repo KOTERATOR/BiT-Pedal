@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EffectsUnitBase.h"
+#include "Views/EffectsUnit/Controls/ToggleSwitch.h"
 #include "Views/EffectsUnit/Controls/Options.h"
 
 enum class FootswitchBinding
@@ -17,6 +18,7 @@ protected:
     size_t fwNum = 0;
 
 public:
+    ToggleSwitch bypassSwitch = ToggleSwitch(this, "BYPASS", true);
     Options<FootswitchBinding> fwBind = Options<FootswitchBinding>(this, "BIND",
                                                                    {OptionsNode<FootswitchBinding>("NONE", FootswitchBinding::NONE),
                                                                     OptionsNode<FootswitchBinding>("TOGGLE", FootswitchBinding::TOGGLE),
@@ -76,5 +78,23 @@ public:
                 }
             }
         }
+    }
+
+    void proceed(int16_t *out, size_t length) override
+    {
+        if (!getGlobalBypass() && !bypass)
+        {
+            processing(out, length);
+        }
+    }
+
+    inline bool getGlobalBypass() override
+    {
+        return !bypassSwitch.state;
+    }
+
+    virtual ~EffectsUnit()
+    {
+        Serial.println("EU DTOR");
     }
 };

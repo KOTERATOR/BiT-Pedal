@@ -7,7 +7,7 @@ class AddButtonView : public View
 public:
     AddButtonView(Size size = Size(48, 48)) : View(nullptr, size, Position(0, 0))
     {
-
+        clickOnly = true;
     }
 
     void onDraw(GFX * gfx)

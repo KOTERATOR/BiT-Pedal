@@ -7,6 +7,7 @@ class VirtualPotentiometer
 private:
     double value, from, to;
 public:
+
     VirtualPotentiometer(double from = 0.0, double to = 1.0, double value = 0.0)
     {
         this->from = from;
@@ -37,12 +38,15 @@ void VirtualPotentiometer::setValue(double value)
     {
         value = from;
     }
-    this->value = value;
+    if (value != this->value)
+    {
+        this->value = value;
+    }
 }
 
 double VirtualPotentiometer::getRangedValue()
 {
-    return abs(value + from)/abs(from - to);
+    return abs(value - from)/abs(from - to);
 }
 
 double VirtualPotentiometer::getRange()

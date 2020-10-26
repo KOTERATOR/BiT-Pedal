@@ -33,6 +33,8 @@ public:
         int y1 = (y - (cos(rad) * r));
 
         gfx->drawLine(x, y, x1, y1, gfx->pallete.viewFgColor);
+        String val(getValue());
+        gfx->drawText(0, 20, val, gfx->pallete.dangerColor, &FreeSansBold9pt7b);
         //gfx->drawText(scrollTextAnim.getValue() /* (size.width - bounds.width) / 2 */, size.height - 2, name, gfx->pallete.viewFgColor);
     }
 

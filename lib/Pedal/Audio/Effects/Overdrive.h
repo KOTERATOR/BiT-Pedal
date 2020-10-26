@@ -17,8 +17,6 @@ public:
     void processing_sample(int16_t *sample) override
     {
         double preGain = gain.getValue(), postGain = post_gain.getValue();
-        int16_t val = *sample;
-        val = atan(val * preGain) * postGain;
-        *sample = val;
+        *sample = atan((*sample) * preGain) * postGain;
     }
 };

@@ -63,7 +63,7 @@ public:
             Size optionTextBounds = optionText.getBounds(gfx);
             optionText.position.y = (safeArea.height - optionTextBounds.height) / 2;
 
-            if (isHovered)
+            /*if (isHovered)
             {
                 if (currentOptionIndex > 0)
                 {
@@ -74,7 +74,7 @@ public:
                 {
                     optionText.text = optionText.text + " >";
                 }
-            }
+            }*/
         }
         else
         {

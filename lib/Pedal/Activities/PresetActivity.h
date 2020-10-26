@@ -10,6 +10,7 @@
 #include "Views/AddButtonView.h"
 #include "Activities/AddEffectActivity.h"
 #include <vector>
+#include <queue>
 
 class PresetActivity : public Activity
 {
@@ -20,8 +21,13 @@ private:
     Layout *effectsLayout,
         *controlsLayout;
     std::vector<EffectsUnitView *> unitsView = std::vector<EffectsUnitView *>();
+    std::vector<EffectsUnit *> deleteEffects;
+
     EffectsUnitView *currentEffect = nullptr;
     //List<ArrowView> arrows = List<ArrowView>();
+    int prevUnitsSize = 0;
+
+    ButtonView *deleteEffect = new ButtonView("REMOVE");
 
 public:
     PresetActivity(Preset *preset) : Activity()
@@ -29,6 +35,7 @@ public:
         this->preset = preset;
 
         presetHeader = new ButtonView(preset->name);
+
         add(presetHeader);
         effectsLayout = new Layout(this, LayoutMode::HORIZONTAL, Position(0, 0), Size(320, 104), ContainerMode::NORMAL);
         controlsLayout = new Layout(this, LayoutMode::HORIZONTAL, Position(0, 0), Size(320, 96), ContainerMode::NORMAL);
@@ -46,13 +53,21 @@ public:
             effectsLayout->add((Container *)ptr);
             //effectsLayout->add(arrows[i]);
         }
-        addEffectButton->selectEvent = ([preset](Container *c) { pedal.screen.intent(new AddEffectActivity(preset)); });
+        addEffectButton->selectEvent = ([&, preset](Container *c) { pedal.screen.intent(new AddEffectActivity(preset)); });
         effectsLayout->add(addEffectButton);
     }
 
     void onDraw(GFX *gfx)
     {
-        if (preset->effects.size() != unitsView.size())
+        for (int i = 0; i < deleteEffects.size(); i++)
+        {
+            preset->remove(deleteEffects.back());
+            deleteEffects.pop_back();
+        }
+
+        while (preset->waitForRemove()) { delay(10); };
+
+        if (preset->effects.size() != prevUnitsSize)
         {
             effectsLayout->clear();
             for (int i = 0; i < unitsView.size(); i++)
@@ -61,6 +76,7 @@ public:
                 delete view;
             }
             unitsView.clear();
+
             //arrows.clear();
             for (int i = 0; i < preset->effects.size(); i++)
             {
@@ -73,6 +89,7 @@ public:
             }
             effectsLayout->add(addEffectButton);
             update();
+            prevUnitsSize = preset->effects.size();
         }
 
         bool effect = false;
@@ -86,18 +103,31 @@ public:
                 {
                     currentEffect = ptr;
                     controlsLayout->clear();
+
+                    deleteEffect->selectEvent = [&](Container *c)
+                    {
+                        Serial.println("DELETE PRESSED");
+                        selectItem(effectsLayout->index);
+                        effectsLayout->onHover();
+                        deleteEffect->isHovered = deleteEffect->isSelected = false;
+                        controlsLayout->clear();
+                        deleteEffects.push_back((EffectsUnit*)currentEffect->unit);
+                        //.preset->remove((EffectsUnit*)currentEffect->unit);
+                    };
+
+                    controlsLayout->add(deleteEffect);
                     for (int i = 0; i < currentEffect->unit->controls.size(); i++)
                     {
                         auto ptr = currentEffect->unit->controls.at(i);
                         controlsLayout->add((Container *)ptr);
                     }
-                    currentEffect->selectEvent = ([&](Container *c) { selectItem(controlsLayout->index); effectsLayout->onUnhover(); });
+                    currentEffect->selectEvent = ([&](Container *c) { selectItem(controlsLayout->index); });
                     controlsLayout->exitEvent = [&](Container *c) {
-                        controlsLayout->onUnhover();
-                        effectsLayout->onUnhover();
-                        selectedItemIndex = effectsLayout->index;
-                        selectedItem = effectsLayout;
-                        effectsLayout->onHover();
+                        selectItem(effectsLayout->index);
+
+                        //selectedItemIndex = effectsLayout->index;
+                        //selectedItem = effectsLayout;
+                        //effectsLayout->onHover();
                         //onSelect();
                     };
                     //selectItem(controlsLayout.index);
@@ -105,11 +135,14 @@ public:
             }
         }
 
+        //Serial.printf("%d %d\r\n", controlsLayout->isHovered, controlsLayout->isSelected);
+
         if (!effect)
         {
             currentEffect = nullptr;
             controlsLayout->clear();
         }
+
         Activity::onDraw(gfx);
     }
 

@@ -3,17 +3,17 @@
 #include "Activity.h"
 #include "GFX.h"
 
-
 class Screen
 {
 private:
     Activity *currentActivity = nullptr;
-    bool isActivityDisposed = false;
+    bool isActivityDisposed = true;
     Sipeed_ST7789 *display_ptr = nullptr;
 
     unsigned long frameTime = 0, updateMs = 0, prevUpdateMs = 0;
 
 public:
+    unsigned long processingTime = 0;
     GFX gfx;
 
     Screen() : gfx(320, 240)
@@ -27,10 +27,13 @@ public:
 
     void setActivity(Activity *activity)
     {
-        deallocActivity();
+        if (!isActivityDisposed)
+            deallocActivity();
+
         currentActivity = activity;
         if (activity != nullptr)
         {
+            isActivityDisposed = false;
             currentActivity->update();
         }
     }
@@ -57,9 +60,20 @@ public:
         if (currentActivity != nullptr)
         {
             delete currentActivity;
-            currentActivity = nullptr;
+            //currentActivity = nullptr;
         }
-        isActivityDisposed = false;
+    }
+
+    void exitActivity()
+    {
+        currentActivity->onExit();
+        if (currentActivity->intentActivity != nullptr)
+        {
+            //currentActivity->intentActivity->onUnselect();
+            setActivity(currentActivity->intentActivity);
+            //currentActivity->onHover();
+            //currentActivity->centerSelectedItem();
+        }
     }
 
     void draw()
@@ -70,12 +84,25 @@ public:
         if (currentActivity != nullptr && !isActivityDisposed)
         {
             currentActivity->draw(&gfx);
+            gfx.setCurrentContainer(nullptr);
+            String heap(get_free_heap_size());
+            String proc(processingTime/1000.0);
+            gfx.drawText(5, 15, heap, COLOR_WHITE, &FreeSansBold9pt7b);
+            gfx.drawText(5, 30, proc, COLOR_WHITE, &FreeSansBold9pt7b);
         }
+
         display_ptr->drawImage(0, 0, gfx.width(), gfx.height(), gfx.getBuffer());
-        display_ptr->setCursor(10, 10);
-        display_ptr->print(frameTime);
+
         frameTime = millis() - prevUpdateMs;
         //prevUpdateMs = updateMs;
+    }
+
+    void update()
+    {
+        if (currentActivity != nullptr)
+        {
+            currentActivity->update();
+        }
     }
 
     void onNext()
@@ -110,18 +137,6 @@ public:
             {
                 exitActivity();
             }
-        }
-    }
-
-    void exitActivity()
-    {
-        currentActivity->onExit();
-        if (currentActivity->intentActivity != nullptr)
-        {
-            //currentActivity->intentActivity->onUnselect();
-            setActivity(currentActivity->intentActivity);
-            currentActivity->onHover();
-            //currentActivity->centerSelectedItem();
         }
     }
 };

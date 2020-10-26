@@ -5,7 +5,6 @@
 #include <vector>
 #include "GFX/Container.h"
 
-class ControlView;
 class Preset;
 
 //#include "Views/EffectsUnit/Controls/Options.h"
@@ -33,7 +32,7 @@ public:
         }
     }
 
-    void proceed(int16_t *out, size_t length);
+    virtual void proceed(int16_t *out, size_t length) {}
 
     String &getName()
     {
@@ -57,16 +56,20 @@ public:
 
     virtual ~EffectsUnitBase()
     {
-        name.~String();
-        controls.~vector();
+        Serial.println("EUB DTOR");
     }
 
-    virtual void setBypass(bool bypass)
+    virtual inline void setBypass(bool bypass)
     {
         this->bypass = bypass;
     }
 
-    virtual bool getBypass()
+    virtual inline bool getBypass()
+    {
+        return bypass;
+    }
+
+    virtual inline bool getGlobalBypass()
     {
         return bypass;
     }
@@ -79,13 +82,3 @@ public:
     {
     }
 };
-
-void EffectsUnitBase::proceed(int16_t *out, size_t length)
-{
-    if (!bypass)
-    {
-        //processing_sample(&out[i]);
-        processing(out, length);
-        
-    }
-}

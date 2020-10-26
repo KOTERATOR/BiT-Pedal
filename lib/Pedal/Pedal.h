@@ -2,6 +2,7 @@
 
 #include <SPI.h>
 #include <Sipeed_ST7789.h>
+#include <SD.h>
 
 #include "GFX/Screen.h"
 #include "Hardware/Encoder.h"
@@ -25,11 +26,11 @@ public:
            fw2 = Button(22, INPUT_PULLUP),
            fw3 = Button(24, INPUT_PULLUP);
     Screen screen = Screen();
+
     Preset *preset = nullptr;
 
     Pedal()
     {
-        
     }
     
     void footswitch(size_t num, bool press)
