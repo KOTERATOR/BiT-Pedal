@@ -14,6 +14,7 @@ private:
 
 public:
     unsigned long processingTime = 0;
+    unsigned long maxProcessingTime = 0, prevProcessingUpdateMs = 0;
     GFX gfx;
 
     Screen() : gfx(320, 240)
@@ -87,8 +88,10 @@ public:
             gfx.setCurrentContainer(nullptr);
             String heap(get_free_heap_size());
             String proc(processingTime/1000.0);
-            gfx.drawText(5, 15, heap, COLOR_WHITE, &FreeSansBold9pt7b);
+            String frame(frameTime);
+            gfx.drawText(5, 15, /*frame*/ heap, COLOR_WHITE, &FreeSansBold9pt7b);
             gfx.drawText(5, 30, proc, COLOR_WHITE, &FreeSansBold9pt7b);
+            //gfx.drawText(5, 1, proc, COLOR_WHITE, &FreeSansBold9pt7b);
         }
 
         display_ptr->drawImage(0, 0, gfx.width(), gfx.height(), gfx.getBuffer());

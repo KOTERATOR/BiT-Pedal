@@ -2,6 +2,7 @@
 
 #include "ControlView.h"
 #include <vector>
+#include <atomic>
 
 template <typename T>
 struct OptionsNode
@@ -18,11 +19,12 @@ template <typename T>
 class Options : public ControlView
 {
 protected:
-    size_t currentOptionIndex = 0;
+    std::atomic<size_t> currentOptionIndex = 0;
     TextComponent optionText;
 
 public:
     std::vector<OptionsNode<T>> options;
+
     Options(EffectsUnitBase *unit, const String &labelText, std::vector<OptionsNode<T>> options) : ControlView(unit, labelText), optionText(this, "", &FreeSansBold12pt7b, Size(5, 5), 5), options(options)
     {
         optionText.autoScroll = true;

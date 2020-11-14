@@ -39,6 +39,7 @@ public:
         add(presetHeader);
         effectsLayout = new Layout(this, LayoutMode::HORIZONTAL, Position(0, 0), Size(320, 104), ContainerMode::NORMAL);
         controlsLayout = new Layout(this, LayoutMode::HORIZONTAL, Position(0, 0), Size(320, 96), ContainerMode::NORMAL);
+        controlsLayout->shadowUnhovered = true;
         effectsLayout->setSpacing(5);
         controlsLayout->setSpacing(5);
         controlsLayout->isSelectable = false;

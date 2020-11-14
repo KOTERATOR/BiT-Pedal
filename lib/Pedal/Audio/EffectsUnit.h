@@ -80,7 +80,7 @@ public:
         }
     }
 
-    void proceed(int16_t *out, size_t length) override
+    void proceed(int16_t *out, size_t length)
     {
         if (!getGlobalBypass() && !bypass)
         {
@@ -96,5 +96,10 @@ public:
     virtual ~EffectsUnit()
     {
         Serial.println("EU DTOR");
+    }
+
+    virtual void update()
+    {
+        
     }
 };

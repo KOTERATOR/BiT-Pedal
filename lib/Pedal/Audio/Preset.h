@@ -8,7 +8,7 @@ class Preset
 private:
     std::vector<EffectsUnit *> deleteEffects;
     void deleteEffect(EffectsUnit *unit);
-    bool waitRemove = false;
+    volatile bool waitRemove = false;
 
 public:
     String name = "Preset";
@@ -65,9 +65,19 @@ public:
         }
     }
 
-    bool waitForRemove()
+    bool waitForRemove() volatile
     {
         return waitRemove;
+    }
+
+    void update()
+    {
+        while (waitRemove)
+            ;
+        for (int i = 0; i < effects.size(); i++)
+        {
+            effects[i]->update();
+        }
     }
 };
 

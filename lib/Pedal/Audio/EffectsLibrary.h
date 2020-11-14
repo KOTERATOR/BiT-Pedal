@@ -31,6 +31,8 @@ public:
         add("DELAY", []() { return new Delay(); });
         add("OVERDRIVE", []() { return new Overdrive(); });
         add("PITCH SHIFTER", []() { return new PitchShifter(); });
+        add("SOUND SHIFTER", []() { return new SoundShifter(); });
+        add("IR", []() { return new IRPlayer(); });
     }
 
     void add(String name, EffectConstructor ctr)

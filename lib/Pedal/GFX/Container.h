@@ -30,6 +30,8 @@ protected:
               resizeHeightAnimation = Animation();
 
 public:
+    int alphaContourSize = 5;
+    bool alphaContour = false;
     bool isSelectable = true, isSelected = false, isHovered = false;
     size_t index;
 
@@ -121,13 +123,13 @@ Container::Container(Container *parent, Position position, Size size, ContainerM
     this->containerMode = containerMode;
 }
 
-void Container::draw(GFX *gfx)
+inline void Container::draw(GFX *gfx)
 {
     onDraw(gfx);
     //gfx.draw();
 }
 
-Position Container::getPosition()
+inline Position Container::getPosition()
 {
     return position;
 }
@@ -143,18 +145,18 @@ Position Container::getAbsolutePosition()
     return pos;
 }
 
-void Container::setPosition(Position position)
+inline void Container::setPosition(Position position)
 {
     this->position = position;
 }
 
-void Container::setAbsolutePosition(Position position)
+inline void Container::setAbsolutePosition(Position position)
 {
     Position absolute = getAbsolutePosition();
     this->position = position - absolute;
 }
 
-Size Container::getSize()
+inline Size Container::getSize()
 {
     return size;
 }
@@ -164,7 +166,7 @@ Size &Container::getReferenceSize()
     return size;
 }
 
-void Container::setSize(Size size)
+inline void Container::setSize(Size size)
 {
     this->size = size;
 }
@@ -186,7 +188,7 @@ Container *Container::getAbsoluteParent()
     }
 }
 
-void Container::setParent(Container *parent)
+inline void Container::setParent(Container *parent)
 {
     this->parent = parent;
 }

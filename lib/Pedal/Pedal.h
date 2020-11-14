@@ -32,7 +32,7 @@ public:
     Pedal()
     {
     }
-    
+
     void footswitch(size_t num, bool press)
     {
         if (preset != nullptr)
@@ -46,7 +46,7 @@ public:
 
     void init()
     {
-        lcd.begin();
+        lcd.begin(20000000U, 0x0000);
         lcd.setRotation(2);
         lcd.fillScreen(COLOR_BLACK);
 
@@ -65,37 +65,40 @@ public:
             onUnselect();
         });
 
-        fw1.onPress = [&]()
-        {
+        fw1.onPress = [&]() {
             footswitch(1, true);
         };
-        fw1.onRelease = [&]()
-        {
+        fw1.onRelease = [&]() {
             footswitch(1, false);
         };
 
-        fw2.onPress = [&]()
-        {
+        fw2.onPress = [&]() {
             footswitch(2, true);
         };
-        fw2.onRelease = [&]()
-        {
+        fw2.onRelease = [&]() {
             footswitch(2, false);
         };
 
-        fw3.onPress = [&]()
-        {
+        fw3.onPress = [&]() {
             footswitch(3, true);
         };
-        fw3.onRelease = [&]()
-        {
+        fw3.onRelease = [&]() {
             footswitch(3, false);
         };
 
         timer_init(timer_device_number_t::TIMER_DEVICE_0);
-        timer_set_interval(timer_device_number_t::TIMER_DEVICE_0, timer_channel_number_t::TIMER_CHANNEL_0, 1000000);
+        timer_set_interval(timer_device_number_t::TIMER_DEVICE_0, timer_channel_number_t::TIMER_CHANNEL_0, 3000000);
         timer_irq_register(timer_device_number_t::TIMER_DEVICE_0, timer_channel_number_t::TIMER_CHANNEL_0, 0, 1, enc_timer_irq, nullptr);
         timer_set_enable(timer_device_number_t::TIMER_DEVICE_0, timer_channel_number_t::TIMER_CHANNEL_0, 1);
+
+        if (SD.begin())
+        {
+            Serial.println("SD INIT SUCCESS");
+        }
+        else
+        {
+            Serial.println("SD INIT FAILED");
+        }
     }
 
     void proceedInputL(int16_t *buf, size_t length)
@@ -112,6 +115,14 @@ public:
         fw1.tick();
         fw2.tick();
         fw3.tick();
+    }
+
+    void update()
+    {
+        if (preset != nullptr)
+        {
+            preset->update();
+        }
     }
 } pedal;
 

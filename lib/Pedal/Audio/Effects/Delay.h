@@ -17,11 +17,9 @@ private:
     PotentiometerView feedback = PotentiometerView(this, "FEEDBACK");
     PotentiometerView level = PotentiometerView(this, "LEVEL");
 
-    Options<int> options = Options<int>(this, "MODE", 
-    {
-        OptionsNode<int>("DIGITAL", 0),
-        OptionsNode<int>("ANALOG", 1)
-    });
+    Options<int> options = Options<int>(this, "MODE",
+                                        {OptionsNode<int>("DIGITAL", 0),
+                                         OptionsNode<int>("ANALOG", 1)});
     //PotentiometerView feedbacker2 = PotentiometerView(this, "FEEDBACKFEEDBACK222");
 public:
     Delay() : EffectsUnit("DELAY")
@@ -44,26 +42,33 @@ public:
         this->bypass = bypass;
     }
 
-    void processing_sample(int16_t *in)
+    void processing(int16_t *out, size_t length) noexcept override
     {
         //Serial.println(in);
-        double feedback_level = feedback.getRangedValue();
-        if (feedback_level == 0.0)
-        {
-            delaybuffer1[counter] = (*in);
-        }
-        else
-        {
-            delaybuffer1[counter] = ((*in) + ((double)delaybuffer1[counter]) * feedback_level);
-        }
+        float feedback_level = feedback.getRangedValue();
         delay_depth = delay.getRangedValue() * MAX_DELAY - 1;
-        counter++;
-        if (counter >= delay_depth)
+        float levelL = level.getRangedValue();
+        for (int i = 0; i < length; i++)
         {
-            counter = 0;
-        }
+            int16_t in = out[i];
+            if (feedback_level == 0.0)
+            {
+                delaybuffer1[counter] = in;
+            }
+            else
+            {
+                delaybuffer1[counter] = in + ((float)delaybuffer1[counter]) * feedback_level;
+            }
+            counter++;
+            if (counter >= delay_depth)
+            {
+                counter = 0;
+            }
 
-        (*in) = ((*in) + (delaybuffer1[counter]) * level.getRangedValue());
+            out[i] = (delaybuffer1[counter]) * levelL;
+            if (drySwitch.state)
+                out[i] += in;
+        }
     }
 
     ~Delay()

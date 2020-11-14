@@ -29,6 +29,7 @@ public:
 
         label.autoScroll = true;
         label.expandOnHover = true;
+        alphaContour = true;
     }
 
     void draw(GFX *gfx)

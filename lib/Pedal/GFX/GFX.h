@@ -27,11 +27,14 @@ enum class VTextAlignment
 class GFX : public GFXcanvas16
 {
 protected:
-    Position offset, containerOffset;
+    Position offset, containerOffset, currentContainerPosition;
+    int containerAlphaContourSize;
+    bool containerAlphaContour;
     Size containerSize;
     uint16_t *buffer;
 
     bool overlap = false;
+    float alpha = 1.f;
 
 public:
     Container *currentContainer;
@@ -62,9 +65,18 @@ public:
         if (currentContainer != nullptr)
         {
             containerOffset = currentContainer->getAbsolutePosition();
+            currentContainerPosition = currentContainer->getPosition();
             containerSize = currentContainer->getSize();
+            containerAlphaContour = currentContainer->alphaContour;
+            containerAlphaContourSize = currentContainer->alphaContourSize;
         }
         overlap = false;
+        alpha = 1.f;
+    }
+
+    void setAlpha(float alpha)
+    {
+        this->alpha = alpha;
     }
 
     void setOverlap(bool overlap) { this->overlap = overlap; }
@@ -73,19 +85,23 @@ public:
 
 void GFX::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
+    bool contour = false;
+    float contourAlpha = 1.f;
     if (currentContainer != nullptr)
     {
-        Container *parent = currentContainer->getParent();
-        Position position = currentContainer->getPosition();
-        Size parentSize = parent->getSize();
-        Position parentRelativePosition = Position(position.x + x, position.y + y);
-
-        if (!overlap && (x < 0 || y < 0 ||
-            x >= currentContainer->getSize().width || y >= currentContainer->getSize().height ||
-            parentRelativePosition.x < 0 || parentRelativePosition.y < 0 ||
-            parentRelativePosition.x >= parentSize.width || parentRelativePosition.y >= parentSize.height))
+        if (!overlap && (x < 0 || y < 0 || x >= containerSize.width || y >= containerSize.height))
             return;
 
+        /*if (!overlap && containerAlphaContour)
+        {
+            int px = std::min((int)x, std::min(containerSize.width - x, std::min((int)y, containerSize.height - y)));
+            if (px <= containerAlphaContourSize && containerAlphaContourSize != 0)
+            {
+                contour = true;
+                contourAlpha = alpha;
+                alpha = ((float)px / containerAlphaContourSize) * alpha;
+            }
+        }*/
         x += containerOffset.x;
         y += containerOffset.y;
     }
@@ -114,7 +130,20 @@ void GFX::drawPixel(int16_t x, int16_t y, uint16_t color)
             break;
         }
 
+        if (alpha != 1.f)
+        {
+            uint16_t dst = buffer[x + y * WIDTH];
+            dst = ((dst >> 8 & 0xff) | (dst << 8));
+            uint8_t dstR = (dst & 0xf800) >> 11, dstG = (dst & 0x07e0) >> 5, dstB = dst & 0x001f;
+
+            float nAlpha = 1.f - alpha;
+            color = (uint16_t)(((color & 0xf800) >> 11) * alpha + dstR * nAlpha) << 11 | (uint16_t)(((color & 0x07e0) >> 5) * alpha + dstG * nAlpha) << 5 | (uint16_t)((color & 0x001f) * alpha + dstB * nAlpha);
+        }
         buffer[x + y * WIDTH] = ((color >> 8 & 0xff) | (color << 8));
+    }
+    if (contour)
+    {
+        alpha = contourAlpha;
     }
 }
 

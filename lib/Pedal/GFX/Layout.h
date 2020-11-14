@@ -30,6 +30,7 @@ protected:
               yScrollAnimation = Animation();
 
 public:
+    bool shadowUnhovered = false;
     std::vector<Container *> children;
 
     Layout(Layout *parent, LayoutMode layoutMode, Position position, Size size, ContainerMode containerMode);
@@ -208,13 +209,17 @@ void Layout::draw(GFX *gfx)
                 continue;
 
             gfx->setCurrentContainer(children[i]);
+            if (shadowUnhovered)
+                gfx->setAlpha(0.5f);
             children[i]->draw(gfx);
+            //gfx->drawRect(0, 0, childSize.width, childSize.height, COLOR_WHITE);
         }
     }
     if (selectedItemIndex < children.size())
     {
         gfx->setCurrentContainer(children[selectedItemIndex]);
         children[selectedItemIndex]->draw(gfx);
+        //gfx->drawRect(0, 0, children[selectedItemIndex]->getSize().width, children[selectedItemIndex]->getSize().height, COLOR_WHITE);
     }
     this->onDraw(gfx);
 }
@@ -470,16 +475,15 @@ void Layout::centerSelectedItem()
                 scroll.y -= child->getPosition().y;
             }
         }
-        scrollPosition = scroll;
+        //scrollPosition = scroll;
+        animationScrollX(scroll.x, 500);
+        animationScrollY(scroll.y, 500);
     }
 }
 
 void Layout::animation()
 {
     Container::animation();
-
-    xScrollAnimation.tick();
-    yScrollAnimation.tick();
 
     if (!xScrollAnimation.isFinished())
         scrollPosition.x = xScrollAnimation.getValue();
@@ -489,26 +493,20 @@ void Layout::animation()
 
 void Layout::animationScrollX(int scrollX, long ms)
 {
-    if (xScrollAnimation.isFinished())
+    if (scrollX != fromScrollPosition.x)
     {
         xScrollAnimation.setup(scrollPosition.x, scrollX, abs(ms));
         xScrollAnimation.start();
-    }
-    else
-    {
-        xScrollAnimation.changeTo(scrollX, ms);
+        fromScrollPosition.x = scrollX;
     }
 }
 
 void Layout::animationScrollY(int scrollY, long ms)
 {
-    if (yScrollAnimation.isFinished())
+    if (scrollY != fromScrollPosition.y)
     {
         yScrollAnimation.setup(scrollPosition.y, scrollY, abs(ms));
         yScrollAnimation.start();
-    }
-    else
-    {
-        yScrollAnimation.changeTo(scrollY, ms);
+        fromScrollPosition.y = scrollY;
     }
 }

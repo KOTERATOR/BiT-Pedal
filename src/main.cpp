@@ -23,9 +23,6 @@ uint64_t procTime = 0;
 
 int displayTask(void *arg)
 {
-    Serial.println("HELLO FROM TASK");
-    //lcd.println("BiT-Pedal");
-    //lcd.fillRect(0, 0, 100, 100, COLOR_BLUE);
     pedal.init();
 
     Preset *preset = new Preset("Hello World!");
@@ -36,29 +33,23 @@ int displayTask(void *arg)
     while (1)
     {
         nowMillis = millis();
-        if (nowMillis - prevUpdateTime > 50)
+        if (nowMillis - prevUpdateTime > 20)
         {
             prevUpdateTime = nowMillis;
             pedal.screen.update();
             pedal.screen.draw();
-            //preset->update();
-            //Serial.println(get_free_heap_size());
-            //Serial.println(procTime);
-            //Serial.println(preset->effects.size());
         }
         pedal.tick();
-        //effect->setBypass(!fw1.isDown());
+        pedal.update();
     }
 }
 
 void io_mux_init(void)
 {
-    // Kendryte K210 Dock:
     fpioa_set_function(35, FUNC_I2S1_WS);
     fpioa_set_function(34, FUNC_I2S1_OUT_D1);
     fpioa_set_function(33, FUNC_I2S1_SCLK);
 
-    //fpioa_set_function(10, FUNC_I2S0_)
     fpioa_set_function(9, FUNC_I2S0_IN_D0);
     fpioa_set_function(15, FUNC_I2S0_WS);
     fpioa_set_function(10, FUNC_I2S0_SCLK);
@@ -74,18 +65,15 @@ void io_mux_init(void)
 
 void setup()
 {
-    Serial.begin(115200);
-    //file.init("6.wav");
-    //lcd.begin(15000000, COLOR_RED);
-    //lcd.invertDisplay(true); // comment this out when camera is on the backside
-    //lcd.fillScreen(COLOR_BLACK);
-    Serial.println(current_coreid());
-
     pll_init();
 
     io_mux_init();
     plic_init();
     sysctl_enable_irq();
+    sysctl_cpu_set_freq(600000000);
+
+    Serial.begin(115200);
+    Serial.println(current_coreid()); 
 
     register_core1(displayTask, NULL);
 
@@ -105,55 +93,8 @@ int16_t l_buf[256] = {}, r_buf[256] = {};
 
 void loop()
 {
-    //Serial.println("LOOP");
-    //Serial.println(current_coreid());
     i2s_receive_data_dma(I2S_DEVICE_0, (uint32_t *)reading, 512, DMAC_CHANNEL1);
 
-    /*if (canCopy)
-    {
-        memcpy(readCopy, proccessing, sizeof(readCopy));
-        canCopy = false;
-    }*/
-    /*int index = 0;
-    for (int i = 0; i < 512; i+=2)
-    {
-        f_buf[index++] = reading[i];
-    }
-
-    index = 0;
-    for (int i = 0; i < 512; i+=2)
-    {
-        proccessing[i] = f_out[index++];
-    }*
-    /*for (int i = 1; i < 512; i += 2)
-    {
-        sDelayBuffer0[DelayCounter] = proccessing[i - 1] + sDelayBuffer0[DelayCounter]/4;
-        sDelayBuffer1[DelayCounter] = proccessing[i] + sDelayBuffer1[DelayCounter]/4;
-
-        //Adjust Delay Depth based in pot2 position.
-
-        //Increse/reset delay counter.
-        DelayCounter++;
-        if (DelayCounter >= Delay_Depth)
-            DelayCounter = 0;
-
-        proccessing[i - 1] = ((sDelayBuffer0[DelayCounter]) + proccessing[i - 1]) / 2;
-        proccessing[i] = ((sDelayBuffer1[DelayCounter]) + proccessing[i]) / 2;
-    }*/
-
-    //while(!transferComplete);
-    /*i2s_play(I2S_DEVICE_2,
-                 DMAC_CHANNEL0, (uint8_t *)(buffer_pp), BUFFER_LENGTH * 4, 512, 16, 2);*/
-    /*if (!bypass)
-    {
-        float preGain = 0.002f, postGain = 1000.f;
-        for (int i = 0; i < 512; i++)
-        {
-            int16_t val = proccessing[i];
-            val = atan(val * preGain) * postGain;
-            proccessing[i] = val;
-        }
-    }*/
     auto prev = micros();
 
     for (int i = 0; i < 256; i++)
